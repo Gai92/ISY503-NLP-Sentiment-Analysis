@@ -1,6 +1,22 @@
+# Configure NLTK data path (local folder inside project)
 import os
+import nltk
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+NLTK_DIR = os.path.join(PROJECT_ROOT, "nltk_data")
+
+# Add custom NLTK directory
+nltk.data.path.append(NLTK_DIR)
+
+# ----------------------------------------------------------------
+
 import re
 from typing import List, Tuple
+
+import pandas as pd
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+from nltk.tokenize import word_tokenize
 
 # Domains used from the Multi-Domain Sentiment Dataset
 DOMAINS = ["books", "dvd", "electronics", "kitchen_&_housewares"]
@@ -52,12 +68,12 @@ def load_labelled_reviews() -> Tuple[List[str], List[int]]:
     Load labelled reviews from all configured domains.
 
     Returns:
-        texts  – list of raw review strings
-        labels – list of integer sentiment labels (1 = positive, 0 = negative)
+        reviews  – list of raw review strings
+        labels   – list of integer sentiment labels (1 = positive, 0 = negative)
     """
     data_dir = get_data_directory()
 
-    texts: List[str] = []
+    reviews: List[str] = []
     labels: List[int] = []
 
     print("Loading labelled data from all domains...")
@@ -74,10 +90,10 @@ def load_labelled_reviews() -> Tuple[List[str], List[int]]:
         pos_reviews = parse_reviews(pos_file)
         neg_reviews = parse_reviews(neg_file)
 
-        texts.extend(pos_reviews)
+        reviews.extend(pos_reviews)
         labels.extend([1] * len(pos_reviews))
 
-        texts.extend(neg_reviews)
+        reviews.extend(neg_reviews)
         labels.extend([0] * len(neg_reviews))
 
         print(
@@ -85,115 +101,160 @@ def load_labelled_reviews() -> Tuple[List[str], List[int]]:
             f"{len(pos_reviews)} positive, {len(neg_reviews)} negative"
         )
 
-    print(f"Loaded {len(texts)} labelled reviews in total.")
-    return texts, labels
+    print(f"Loaded {len(reviews)} labelled reviews in total.")
+    return reviews, labels
 
+
+# -----------------------------------------------------------
+# Step 5: Clean and Preprocess Text
+# -----------------------------------------------------------
 
 class TextPreprocessor:
-    """
-    Text cleaning utilities for raw review strings.
-
-    The cleaning pipeline includes:
-      * lowercasing
-      * removal of HTML tags
-      * removal of URLs and email addresses
-      * removal of non-alphabetic characters
-      * removal of most single-character tokens
-      * normalisation of whitespace
-    """
-
-    HTML_TAG_RE = re.compile(r"<[^>]+>")
-    URL_RE = re.compile(r"http[s]?://\S+|www\.\S+")
-    EMAIL_RE = re.compile(r"\S+@\S+")
-    NON_LETTER_RE = re.compile(r"[^a-zA-Z\s]+")
+    def __init__(self) -> None:
+        self.stop_words = set(stopwords.words("english"))
+        self.lemmatizer = WordNetLemmatizer()
 
     def clean_text(self, text: str) -> str:
-        """Apply a sequence of cleaning operations to a single review."""
-        # Lowercase
+        """Clean individual review text."""
+        # Convert to lowercase
         text = text.lower()
 
         # Remove HTML tags
-        text = self.HTML_TAG_RE.sub(" ", text)
+        text = re.sub(r"<.*?>", "", text)
 
-        # Remove URLs and e-mail addresses
-        text = self.URL_RE.sub(" ", text)
-        text = self.EMAIL_RE.sub(" ", text)
+        # Remove URLs
+        text = re.sub(r"http\S+|www\.\S+", "", text)
 
-        # Keep only letters and whitespace
-        text = self.NON_LETTER_RE.sub(" ", text)
+        # Remove email addresses
+        text = re.sub(r"\S+@\S+", "", text)
 
-        # Collapse multiple spaces
-        text = re.sub(r"\s+", " ", text).strip()
+        # Remove punctuation but keep spaces
+        text = re.sub(r"[^\w\s]", " ", text)
 
-        # Remove most single-character tokens (keep common pronouns)
-        tokens = text.split()
-        filtered_tokens = [t for t in tokens if len(t) > 1 or t in {"i", "a"}]
+        # Remove numbers
+        text = re.sub(r"\d+", "", text)
 
-        return " ".join(filtered_tokens)
+        # Remove extra whitespace
+        text = " ".join(text.split())
 
-    def transform_corpus(self, texts: List[str]) -> List[str]:
-        """Clean a list of raw review strings."""
-        return [self.clean_text(t) for t in texts]
+        return text
+
+    def tokenize_and_lemmatize(self, text: str) -> List[str]:
+        """Tokenize and lemmatize text."""
+        tokens = word_tokenize(text)
+
+        # Remove stopwords and lemmatize
+        tokens = [
+            self.lemmatizer.lemmatize(token)
+            for token in tokens
+            if token not in self.stop_words and len(token) > 2
+        ]
+
+        return tokens
+
+    def preprocess_reviews(self, reviews: List[str]) -> List[str]:
+        """Preprocess all reviews."""
+        processed_reviews: List[str] = []
+
+        for i, review in enumerate(reviews):
+            if i % 1000 == 0:
+                print(f"Processing review {i}/{len(reviews)}")
+
+            # Clean text
+            cleaned = self.clean_text(review)
+
+            # Tokenize and lemmatize
+            tokens = self.tokenize_and_lemmatize(cleaned)
+
+            # Join tokens back to string
+            processed_reviews.append(" ".join(tokens))
+
+        return processed_reviews
 
 
-def remove_outliers(texts: List[str], labels: List[int],
-                    min_length: int = 5) -> Tuple[List[str], List[int]]:
-    """
-    Remove very short or empty reviews from the corpus.
+# -----------------------------------------------------------
+# Step 6: Handle Outliers and Data Quality
+# -----------------------------------------------------------
 
-    Args:
-        texts: list of cleaned review strings
-        labels: corresponding sentiment labels
-        min_length: minimum number of tokens required to keep a review
-    """
-    filtered_texts: List[str] = []
+def remove_outliers(
+    reviews: List[str],
+    labels: List[int],
+    min_length: int = 10,
+    max_length: int = 1000,
+) -> Tuple[List[str], List[int]]:
+    """Remove reviews that are too short or too long."""
+    filtered_reviews: List[str] = []
     filtered_labels: List[int] = []
+    removed_count = 0
 
-    for text, label in zip(texts, labels):
-        if len(text.split()) >= min_length:
-            filtered_texts.append(text)
+    for review, label in zip(reviews, labels):
+        word_count = len(review.split())
+
+        if min_length <= word_count <= max_length:
+            filtered_reviews.append(review)
             filtered_labels.append(label)
+        else:
+            removed_count += 1
 
-    print(
-        f"Removed {len(texts) - len(filtered_texts)} short reviews; "
-        f"{len(filtered_texts)} samples remain."
-    )
-    return filtered_texts, filtered_labels
+    print(f"Removed {removed_count} outlier reviews")
+    return filtered_reviews, filtered_labels
 
+
+def check_data_quality(reviews: List[str], labels: List[int]) -> pd.DataFrame:
+    """Analyze data quality and balance."""
+    df = pd.DataFrame({"review": reviews, "label": labels})
+
+    # Check class balance
+    print("\nClass distribution:")
+    print(df["label"].value_counts())
+
+    # Check review lengths
+    df["word_count"] = df["review"].apply(lambda x: len(x.split()))
+    print("\nReview length statistics:")
+    print(df["word_count"].describe())
+
+    # Find duplicate reviews
+    duplicates = df.duplicated(subset=["review"]).sum()
+    print(f"\nDuplicate reviews: {duplicates}")
+
+    return df
+
+
+# -----------------------------------------------------------
+# Pipeline entry point
+# -----------------------------------------------------------
 
 def main() -> None:
     """
-    Entry point for the preprocessing pipeline.
+    End-to-end preprocessing pipeline:
 
-    This function performs:
-      1) loading raw labelled reviews,
-      2) text cleaning,
-      3) basic outlier removal.
+      1) load raw labelled reviews,
+      2) clean, tokenize and lemmatize text,
+      3) remove outliers,
+      4) perform basic data quality checks,
+      5) print a small human-readable sample.
     """
     # 1. Load raw data
-    raw_texts, labels = load_labelled_reviews()
+    raw_reviews, labels = load_labelled_reviews()
 
-    # 2. Clean text
-    preprocessor = TextPreprocessor()
-    cleaned_texts = preprocessor.transform_corpus(raw_texts)
-    print("Completed text normalisation.")
-
-    # 3. Remove very short reviews
-    cleaned_texts, labels = remove_outliers(cleaned_texts, labels, min_length=5)
-
-    # At this stage Student B can continue with tokenisation and modelling.
-    # Later we will add code here to persist the cleaned corpus to disk.
-
-    # Human-readable sanity check: show a small sample of processed reviews
+    # 2. Clean, tokenize and lemmatize
     print("\n2. Preprocessing...\n")
+    preprocessor = TextPreprocessor()
+    processed_reviews = preprocessor.preprocess_reviews(raw_reviews)
 
+    # 3. Handle outliers
+    processed_reviews, labels = remove_outliers(processed_reviews, labels)
+
+    # 4. Data quality checks
+    _ = check_data_quality(processed_reviews, labels)
+
+    # 5. Human-readable sample
     sample_size = 4
-    print(f"--- {sample_size} processed reviews & labels ---")
-
-    for idx in range(min(sample_size, len(cleaned_texts))):
+    print(f"\n--- {sample_size} processed reviews & labels ---")
+    for idx in range(min(sample_size, len(processed_reviews))):
         label = labels[idx]
-        text_snippet = cleaned_texts[idx][:80]  # first ~80 characters
-        print(f"Label: {label} | Text: {text_snippet}")
+        snippet = processed_reviews[idx][:80]
+        print(f"Label: {label} | Text: {snippet}")
 
 
 if __name__ == "__main__":
