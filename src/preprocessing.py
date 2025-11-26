@@ -1,14 +1,13 @@
-# Configure NLTK data path (local folder inside project)
+# preprocessing.py
+# handles data loading and text preprocessing
+
 import os
 import nltk
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-NLTK_DIR = os.path.join(PROJECT_ROOT, "nltk_data")
-
-# Add custom NLTK directory
-nltk.data.path.append(NLTK_DIR)
-
-# ----------------------------------------------------------------
+# setup nltk path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+nltk_data_dir = os.path.join(project_root, "nltk_data")
+nltk.data.path.append(nltk_data_dir)
 
 import re
 from typing import List, Tuple
@@ -22,10 +21,8 @@ from nltk.tokenize import word_tokenize
 DOMAINS = ["books", "dvd", "electronics", "kitchen_&_housewares"]
 
 
-def get_data_directory() -> str:
-    """
-    Resolve the absolute path to the data directory based on the current file.
-    """
+def get_data_directory():
+    """Get path to data folder"""
     current_file = os.path.abspath(__file__)
     src_dir = os.path.dirname(current_file)
     project_root = os.path.dirname(src_dir)
@@ -33,13 +30,8 @@ def get_data_directory() -> str:
     return data_dir
 
 
-def parse_reviews(file_path: str) -> List[str]:
-    """
-    Parse a .review file from the Multi-Domain Sentiment Dataset.
-
-    Each file contains multiple <review>...</review> blocks.
-    This function splits the file into individual raw review strings.
-    """
+def parse_reviews(file_path):
+    """Parse review file and extract individual reviews"""
     with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
         data = f.read()
 
@@ -84,7 +76,7 @@ def load_labelled_reviews() -> Tuple[List[str], List[int]]:
         neg_file = os.path.join(domain_path, "negative.review")
 
         if not os.path.isfile(pos_file) or not os.path.isfile(neg_file):
-            print(f"   ⚠ Domain '{domain}' was skipped: review files not found.")
+            print(f"   Warning: Domain '{domain}' was skipped: review files not found.")
             continue
 
         pos_reviews = parse_reviews(pos_file)

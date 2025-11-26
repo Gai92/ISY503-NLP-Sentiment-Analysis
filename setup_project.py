@@ -15,10 +15,10 @@ def check_python_version():
     print(f"Python version: {version.major}.{version.minor}.{version.micro}")
     
     if version.major < 3 or (version.major == 3 and version.minor < 7):
-        print("❌ Python 3.7 or higher is required!")
+        print("ERROR: Python 3.7 or higher is required!")
         return False
     
-    print("✅ Python version is compatible")
+    print("Python version is compatible")
     return True
 
 
@@ -40,9 +40,9 @@ def check_dependencies():
     for package in required_packages:
         try:
             __import__(package)
-            print(f"✅ {package} is installed")
+            print(f"[OK] {package} is installed")
         except ImportError:
-            print(f"❌ {package} is NOT installed")
+            print(f"[MISSING] {package} is NOT installed")
             missing_packages.append(package)
     
     return missing_packages
@@ -70,13 +70,13 @@ def download_nltk_data():
     for data_name in required_data:
         try:
             nltk.data.find(f'tokenizers/{data_name}')
-            print(f"✅ NLTK {data_name} already downloaded")
+            print(f"NLTK {data_name} already downloaded")
         except LookupError:
             try:
                 nltk.download(data_name, download_dir=str(NLTK_DIR))
-                print(f"✅ Downloaded NLTK {data_name}")
+                print(f"Downloaded NLTK {data_name}")
             except:
-                print(f"⚠️  Could not download NLTK {data_name}")
+                print(f"Warning: Could not download NLTK {data_name}")
 
 
 def check_data_files():
@@ -95,9 +95,9 @@ def check_data_files():
         neg_file = domain_path / "negative.review"
         
         if pos_file.exists() and neg_file.exists():
-            print(f"✅ {domain} data files present")
+            print(f"[OK] {domain} data files present")
         else:
-            print(f"❌ {domain} data files missing")
+            print(f"[MISSING] {domain} data files missing")
             all_present = False
     
     return all_present
@@ -119,7 +119,7 @@ def create_directories():
     for dir_name in directories:
         dir_path = PROJECT_ROOT / dir_name
         dir_path.mkdir(parents=True, exist_ok=True)
-        print(f"✅ Directory '{dir_name}' ready")
+        print(f"Directory '{dir_name}' ready")
 
 
 def main():
@@ -136,30 +136,30 @@ def main():
     missing = check_dependencies()
     
     if missing:
-        print(f"\n⚠️  Missing packages: {', '.join(missing)}")
+        print(f"\nMissing packages: {', '.join(missing)}")
         print("Install them with: pip install -r requirements.txt")
         
         response = input("\nDo you want to install missing packages now? (y/n): ")
         if response.lower() == 'y':
             subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
-            print("\n✅ Dependencies installed!")
+            print("\nDependencies installed!")
     else:
-        print("\n✅ All dependencies are installed!")
+        print("\nAll dependencies are installed!")
     
     # Download NLTK data
     try:
         download_nltk_data()
     except Exception as e:
-        print(f"⚠️  Error downloading NLTK data: {e}")
+        print(f"Error downloading NLTK data: {e}")
     
     # Check data files
     if not check_data_files():
-        print("\n⚠️  Some data files are missing!")
+        print("\nSome data files are missing!")
         print("Please download the Multi-Domain Sentiment Dataset from:")
         print("http://www.cs.jhu.edu/~mdredze/datasets/sentiment/index2.html")
         print("And extract the review files to the appropriate directories.")
     else:
-        print("\n✅ All data files are present!")
+        print("\nAll data files are present!")
     
     # Create directories
     create_directories()
