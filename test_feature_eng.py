@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Quick test to see if feature engineering works
+# Quick test to check feature engineering
 
 import sys
 import os
@@ -22,18 +22,15 @@ def test_pipeline():
         
     print(f"Loaded {len(reviews)} reviews")
     
-    # preprocess
     print("\nPreprocessing text...")
     preprocessor = TextPreprocessor()
     
-    # just do a few for testing
     test_size = min(100, len(reviews))
     processed = preprocessor.preprocess_reviews(reviews[:test_size])
     test_labels = labels[:test_size]
     
     print(f"Processed {len(processed)} reviews")
     
-    # remove really short ones
     processed, test_labels = remove_outliers(processed, test_labels, min_length=5)
     
     # test encoding
@@ -52,7 +49,6 @@ def test_pipeline():
     print(f"  X_val: {X_val.shape}")
     print(f"  X_test: {X_test.shape}")
     
-    # show a sample
     print("\nSample encoded sequence (first 20 tokens):")
     print(X_train[0][:20])
 
