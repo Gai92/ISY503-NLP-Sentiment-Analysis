@@ -1,6 +1,3 @@
-# feature_engineering.py
-# This file handles text encoding for the sentiment analysis
-
 import numpy as np
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.preprocessing.text import Tokenizer
@@ -8,9 +5,8 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 import pickle
 import os
 
-# max words to use
 MAX_WORDS = 10000
-MAX_LEN = 200  # max review length
+MAX_LEN = 200
 
 class TextEncoder:
     def __init__(self, max_words=10000, max_len=200):
@@ -19,22 +15,16 @@ class TextEncoder:
         self.tokenizer = None
         
     def fit_tokenizer(self, texts):
-        """Fit the tokenizer on our texts"""
-        # create tokenizer
         self.tokenizer = Tokenizer(num_words=self.max_words, oov_token='<OOV>')
         self.tokenizer.fit_on_texts(texts)
         
-        # save it for later
-        # get the artifacts folder
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_dir = os.path.dirname(current_dir)
         artifacts_dir = os.path.join(project_dir, 'artifacts')
         
-        # make sure folder exists
         if not os.path.exists(artifacts_dir):
             os.makedirs(artifacts_dir)
             
-        # save tokenizer
         tokenizer_path = os.path.join(artifacts_dir, 'tokenizer.pickle')
         with open(tokenizer_path, 'wb') as handle:
             pickle.dump(self.tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -43,12 +33,10 @@ class TextEncoder:
         print(f"Saved tokenizer to {tokenizer_path}")
         
     def texts_to_sequences(self, texts):
-        """Convert texts to number sequences"""
         if self.tokenizer is None:
             raise ValueError("Tokenizer not fitted yet!")
             
         sequences = self.tokenizer.texts_to_sequences(texts)
-        # pad sequences so they're all same length
         padded = pad_sequences(sequences, maxlen=self.max_len, 
                               padding='post', truncating='post')
         return padded
