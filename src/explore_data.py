@@ -1,41 +1,21 @@
 import os
-from typing import List, Tuple
 
-# Domains used from the Multi-Domain Sentiment Dataset
 DOMAINS = ["books", "dvd", "electronics", "kitchen_&_housewares"]
 
-
-def get_data_directory() -> str:
-    """
-    Resolve the absolute path to the data directory.
-
-    The function computes the project root based on the location of this file
-    and then appends the 'data' folder. This makes the code independent of
-    the current working directory.
-    """
-    # .../ISY503-NLP-Sentiment-Analysis/src/explore_data.py
+def get_data_directory():
     current_file = os.path.abspath(__file__)
-    # .../ISY503-NLP-Sentiment-Analysis/src
     src_dir = os.path.dirname(current_file)
-    # .../ISY503-NLP-Sentiment-Analysis
     project_root = os.path.dirname(src_dir)
-    # .../ISY503-NLP-Sentiment-Analysis/data
     data_dir = os.path.join(project_root, "data")
     return data_dir
 
 
-def parse_reviews(file_path: str) -> List[str]:
-    """
-    Parse a .review file from the Multi-Domain Sentiment Dataset.
-
-    Each file contains multiple <review>...</review> blocks.
-    This function splits the file into individual raw review strings.
-    """
+def parse_reviews(file_path):
     with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
         data = f.read()
 
     chunks = data.split("<review>")
-    reviews: List[str] = []
+    reviews = []
 
     for chunk in chunks:
         chunk = chunk.strip()
@@ -54,18 +34,11 @@ def parse_reviews(file_path: str) -> List[str]:
     return reviews
 
 
-def load_all_domains(data_dir: str) -> Tuple[List[str], List[str]]:
-    """
-    Load labelled reviews from all configured domains.
+def load_all_domains(data_dir):
+    all_positive = []
+    all_negative = []
 
-    For each domain, positive and negative .review files are parsed and
-    appended to the corresponding corpus lists. The function returns the
-    aggregated positive and negative review collections.
-    """
-    all_positive: List[str] = []
-    all_negative: List[str] = []
-
-    print("1. Loading labelled data from raw files...")
+    print("Loading data from files...")
 
     for domain in DOMAINS:
         domain_path = os.path.join(data_dir, domain)
@@ -73,7 +46,7 @@ def load_all_domains(data_dir: str) -> Tuple[List[str], List[str]]:
         neg_file = os.path.join(domain_path, "negative.review")
 
         if not os.path.isfile(pos_file) or not os.path.isfile(neg_file):
-            print(f"   ⚠ Domain '{domain}' was skipped: review files not found.")
+            print(f"   Domain '{domain}' skipped - files not found")
             continue
 
         pos_reviews = parse_reviews(pos_file)
@@ -82,10 +55,7 @@ def load_all_domains(data_dir: str) -> Tuple[List[str], List[str]]:
         all_positive.extend(pos_reviews)
         all_negative.extend(neg_reviews)
 
-        print(
-            f"   Domain '{domain}': "
-            f"{len(pos_reviews)} positive, {len(neg_reviews)} negative"
-        )
+        print(f"   {domain}: {len(pos_reviews)} pos, {len(neg_reviews)} neg")
 
     return all_positive, all_negative
 
