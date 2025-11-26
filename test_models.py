@@ -36,9 +36,9 @@ def test_models():
         output = lstm.predict(dummy_input[:5], verbose=0)
         print(f"   LSTM output shape: {output.shape}")
         print(f"   Total parameters: {lstm.count_params():,}")
-        print("   ✓ LSTM model works!")
+        print("   LSTM model works!")
     except Exception as e:
-        print(f"   ✗ LSTM failed: {e}")
+        print(f"   LSTM failed: {e}")
     
     print()
     
@@ -49,9 +49,9 @@ def test_models():
         output = cnn.predict(dummy_input[:5], verbose=0)
         print(f"   CNN output shape: {output.shape}")
         print(f"   Total parameters: {cnn.count_params():,}")
-        print("   ✓ CNN model works!")
+        print("   CNN model works!")
     except Exception as e:
-        print(f"   ✗ CNN failed: {e}")
+        print(f"   CNN failed: {e}")
     
     print()
     
@@ -62,9 +62,9 @@ def test_models():
         output = hybrid.predict(dummy_input[:5], verbose=0)
         print(f"   Hybrid output shape: {output.shape}")
         print(f"   Total parameters: {hybrid.count_params():,}")
-        print("   ✓ Hybrid model works!")
+        print("   Hybrid model works!")
     except Exception as e:
-        print(f"   ✗ Hybrid failed: {e}")
+        print(f"   Hybrid failed: {e}")
     
     print()
     print("All models tested successfully!")
