@@ -1,88 +1,86 @@
-#!/usr/bin/env python3
-# explore_data.py - look at the dataset
-
 import os
-import sys
 
-# add parent dir to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DOMAINS = ["books", "dvd", "electronics", "kitchen_&_housewares"]
+
+def get_data_directory():
+    current_file = os.path.abspath(__file__)
+    src_dir = os.path.dirname(current_file)
+    project_root = os.path.dirname(src_dir)
+    data_dir = os.path.join(project_root, "data")
+    return data_dir
+
+
+def parse_reviews(file_path):
+    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+        data = f.read()
+
+    chunks = data.split("<review>")
+    reviews = []
+
+    for chunk in chunks:
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+
+        if "</review>" in chunk:
+            review_text = chunk.split("</review>")[0]
+        else:
+            review_text = chunk
+
+        review_text = review_text.strip()
+        if review_text:
+            reviews.append(review_text)
+
+    return reviews
+
+
+def load_all_domains(data_dir):
+    all_positive = []
+    all_negative = []
+
+    print("Loading data from files...")
+
+    for domain in DOMAINS:
+        domain_path = os.path.join(data_dir, domain)
+        pos_file = os.path.join(domain_path, "positive.review")
+        neg_file = os.path.join(domain_path, "negative.review")
+
+        if not os.path.isfile(pos_file) or not os.path.isfile(neg_file):
+            print(f"   Domain '{domain}' skipped - files not found")
+            continue
+
+        pos_reviews = parse_reviews(pos_file)
+        neg_reviews = parse_reviews(neg_file)
+
+        all_positive.extend(pos_reviews)
+        all_negative.extend(neg_reviews)
+
+        print(f"   {domain}: {len(pos_reviews)} pos, {len(neg_reviews)} neg")
+
+    return all_positive, all_negative
+
 
 def explore_dataset():
-    """Check what data we have"""
-    
-    data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
-    
-    print("Exploring dataset...")
-    print("=" * 50)
-    
-    # check each domain
-    domains = ['books', 'dvd', 'electronics', 'kitchen_&_housewares']
-    
-    total_pos = 0
-    total_neg = 0
-    
-    for domain in domains:
-        domain_path = os.path.join(data_dir, domain)
-        
-        if not os.path.exists(domain_path):
-            print(f"\n{domain}: NOT FOUND")
-            continue
-            
-        pos_file = os.path.join(domain_path, 'positive.review')
-        neg_file = os.path.join(domain_path, 'negative.review')
-        
-        # check if files exist
-        has_pos = os.path.exists(pos_file)
-        has_neg = os.path.exists(neg_file)
-        
-        print(f"\n{domain}:")
-        
-        if has_pos:
-            # count reviews (rough estimate by counting <review> tags)
-            with open(pos_file, 'r', encoding='utf-8', errors='ignore') as f:
-                content = f.read()
-                count = content.count('<review>')
-                print(f"  Positive reviews: ~{count}")
-                total_pos += count
-        else:
-            print(f"  Positive reviews: FILE NOT FOUND")
-            
-        if has_neg:
-            with open(neg_file, 'r', encoding='utf-8', errors='ignore') as f:
-                content = f.read()
-                count = content.count('<review>')
-                print(f"  Negative reviews: ~{count}")
-                total_neg += count
-        else:
-            print(f"  Negative reviews: FILE NOT FOUND")
-    
-    print("\n" + "=" * 50)
-    print(f"Total positive reviews: ~{total_pos}")
-    print(f"Total negative reviews: ~{total_neg}")
-    print(f"Total reviews: ~{total_pos + total_neg}")
-    
-    # show sample review if available
-    print("\n" + "=" * 50)
-    print("Sample review from books/positive.review:")
-    print("-" * 50)
-    
-    sample_file = os.path.join(data_dir, 'books', 'positive.review')
-    if os.path.exists(sample_file):
-        with open(sample_file, 'r', encoding='utf-8', errors='ignore') as f:
-            content = f.read()
-            # find first review
-            start = content.find('<review>')
-            if start != -1:
-                end = content.find('</review>', start)
-                if end != -1:
-                    review = content[start+8:end].strip()
-                    # show first 500 chars
-                    if len(review) > 500:
-                        print(review[:500] + "...")
-                    else:
-                        print(review)
-    else:
-        print("Sample file not found")
+    data_dir = get_data_directory()
+
+    positive_reviews, negative_reviews = load_all_domains(data_dir)
+
+    total_pos = len(positive_reviews)
+    total_neg = len(negative_reviews)
+    total = total_pos + total_neg
+
+    print(f"\nTotal: {total} reviews")
+    print(f"Positive: {total_pos}")
+    print(f"Negative: {total_neg}")
+
+    if positive_reviews:
+        print("\nPositive sample:")
+        print(positive_reviews[0][:200])
+
+    if negative_reviews:
+        print("\nNegative sample:")
+        print(negative_reviews[0][:200])
+
 
 if __name__ == "__main__":
     explore_dataset()
