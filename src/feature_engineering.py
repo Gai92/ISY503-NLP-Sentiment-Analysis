@@ -92,12 +92,10 @@ if __name__ == "__main__":
     encoder = TextEncoder(max_words=100, max_len=10)
     encoder.fit_tokenizer(sample_reviews)
     
-    # test encoding
     encoded = encoder.texts_to_sequences(sample_reviews)
     print("\nEncoded sequences:")
     print(encoded)
     
-    # test data split
     X_train, X_val, X_test, y_train, y_val, y_test = encoder.prepare_data(
         sample_reviews, sample_labels
     )
