@@ -60,14 +60,7 @@ def load_all_domains(data_dir):
     return all_positive, all_negative
 
 
-def explore_dataset() -> None:
-    """
-    Perform initial data exploration.
-
-    This step aggregates basic corpus statistics across all domains and
-    prints raw samples from the positive and negative classes to support
-    manual inspection of the dataset.
-    """
+def explore_dataset():
     data_dir = get_data_directory()
 
     positive_reviews, negative_reviews = load_all_domains(data_dir)
@@ -76,17 +69,16 @@ def explore_dataset() -> None:
     total_neg = len(negative_reviews)
     total = total_pos + total_neg
 
-    print(
-        f"\nLoaded {total} labelled reviews | "
-        f"Positive: {total_pos} | Negative: {total_neg}"
-    )
+    print(f"\nTotal: {total} reviews")
+    print(f"Positive: {total_pos}")
+    print(f"Negative: {total_neg}")
 
     if positive_reviews:
-        print("\n--- Positive review sample (raw, first 200 characters) ---")
+        print("\nPositive sample:")
         print(positive_reviews[0][:200])
 
     if negative_reviews:
-        print("\n--- Negative review sample (raw, first 200 characters) ---")
+        print("\nNegative sample:")
         print(negative_reviews[0][:200])
 
 
