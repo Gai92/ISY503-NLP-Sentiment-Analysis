@@ -42,21 +42,16 @@ class TextEncoder:
         return padded
     
     def prepare_data(self, reviews, labels, test_size=0.2, val_size=0.1):
-        """Split data into train, validation and test sets"""
         
-        # encode the reviews first
         X = self.texts_to_sequences(reviews)
         y = np.array(labels)
         
-        # first split - get test set
         X_temp, X_test, y_temp, y_test = train_test_split(
             X, y, test_size=test_size, random_state=42, stratify=y
         )
         
-        # calculate validation size from remaining data
         val_size_adjusted = val_size / (1 - test_size)
         
-        # second split - get train and val
         X_train, X_val, y_train, y_val = train_test_split(
             X_temp, y_temp, test_size=val_size_adjusted, random_state=42, stratify=y_temp
         )
@@ -70,7 +65,6 @@ class TextEncoder:
 
 
 def load_tokenizer():
-    """Load saved tokenizer from file"""
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_dir = os.path.dirname(current_dir)
     tokenizer_path = os.path.join(project_dir, 'artifacts', 'tokenizer.pickle')
@@ -84,9 +78,7 @@ def load_tokenizer():
     return tokenizer
 
 
-# test the module
 if __name__ == "__main__":
-    # just a simple test
     print("Testing TextEncoder...")
     
     sample_reviews = [
