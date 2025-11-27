@@ -219,13 +219,9 @@ if __name__ == "__main__":
     
     if success:
         print("\nEverything works! Your pipeline is ready.")
-        print("\nNext steps:")
-        print("1. Other team members can now implement training (Step 9)")
-        print("2. Then evaluation (Phase 5)")
-        print("3. Then web app (Phase 6)")
     else:
-        print("\nSome components failed. Check the errors above.")
-        print("Make sure:")
-        print("1. All dependencies are installed (pip install -r requirements.txt)")
-        print("2. Data files are in the data/ folder")
-        print("3. NLTK data is downloaded")
+        print("\nSome components failed. Check the errors.")
+        print("Check:")
+        print("All dependencies are installed (pip install -r requirements.txt)")
+        print("Data files are in the data/ folder")
+        print("NLTk data is downloaded")

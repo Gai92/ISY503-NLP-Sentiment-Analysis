@@ -114,14 +114,14 @@ if __name__ == "__main__":
     
     print("\nCreating LSTM model...")
     lstm_model = create_lstm_model(vocab_size, max_len)
-    print(f"LSTM model params: {lstm_model.count_params():,}")
+    lstm_model.summary()
     
     print("\nCreating CNN model...")
     cnn_model = create_cnn_model(vocab_size, max_len)
-    print(f"CNN model params: {cnn_model.count_params():,}")
+    cnn_model.summary()
     
     print("\nCreating Hybrid model...")
     hybrid_model = create_hybrid_model(vocab_size, max_len)
-    print(f"Hybrid model params: {hybrid_model.count_params():,}")
+    hybrid_model.summary()
     
     print("\nAll models created successfully!")
