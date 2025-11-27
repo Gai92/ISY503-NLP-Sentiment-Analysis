@@ -81,25 +81,44 @@ def load_tokenizer():
 if __name__ == "__main__":
     print("Testing TextEncoder...")
     
+    # need enough samples for stratified split
     sample_reviews = [
         "This product is really good",
         "Terrible experience, would not recommend",
         "It's okay I guess",
-        "Amazing! Best purchase ever!"
+        "Amazing! Best purchase ever!",
+        "Worst product ever, total waste",
+        "Excellent quality, highly recommend",
+        "Not bad but could be better",
+        "Absolutely horrible, do not buy",
+        "Great value for money",
+        "Complete disaster, avoid",
+        "Pretty decent overall",
+        "Outstanding performance",
+        "Disappointing quality",
+        "Worth every penny",
+        "Not worth the price",
+        "Satisfactory product"
     ]
-    sample_labels = [1, 0, 1, 1]
+    sample_labels = [1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1]  # 10 pos, 6 neg
     
     encoder = TextEncoder(max_words=100, max_len=10)
     encoder.fit_tokenizer(sample_reviews)
     
     encoded = encoder.texts_to_sequences(sample_reviews)
-    print("\nEncoded sequences:")
-    print(encoded)
+    print("\nEncoded sequences (first 5):")
+    print(encoded[:5])
     
-    X_train, X_val, X_test, y_train, y_val, y_test = encoder.prepare_data(
-        sample_reviews, sample_labels
-    )
-    
-    print("\nTrain shape:", X_train.shape)
-    print("Val shape:", X_val.shape)
-    print("Test shape:", X_test.shape)
+    # test with enough data
+    if len(sample_reviews) >= 10:
+        X_train, X_val, X_test, y_train, y_val, y_test = encoder.prepare_data(
+            sample_reviews, sample_labels
+        )
+        
+        print("\nTrain shape:", X_train.shape)
+        print("Val shape:", X_val.shape)
+        print("Test shape:", X_test.shape)
+    else:
+        print("\nNot enough data for split test")
+        
+    print("\nTextEncoder test completed!")
