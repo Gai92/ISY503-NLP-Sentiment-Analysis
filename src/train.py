@@ -92,14 +92,14 @@ def train_lstm():
     print(f"Test AUC: {test_auc:.4f}")
     
     # plot training history
-    plot_training_history(history)
+    plot_training_history(history, 'lstm_training_history.png')
     
     print("\nTraining complete!")
     print("Model saved to models/best_lstm.h5")
     
     return model, history
 
-def plot_training_history(history):
+def plot_training_history(history, filename='training_history.png'):
     # accuracy plot
     plt.figure(figsize=(12, 4))
     
@@ -123,14 +123,203 @@ def plot_training_history(history):
     plt.grid(True)
     
     plt.tight_layout()
-    plt.savefig('training_history.png')
+    plt.savefig(filename)
     plt.show()
-    print("Saved plot to training_history.png")
+    print(f"Saved plot to {filename}")
 
 # backward compatibility with old name
 def plot_history(history):
     # just call the new function
     plot_training_history(history)
 
+def train_cnn():
+    """Train CNN model for sentiment analysis"""
+    print("Starting CNN training...")
+    
+    # load data
+    print("\nLoading data...")
+    reviews, labels = load_labelled_reviews()
+    
+    if len(reviews) == 0:
+        print("No data found!")
+        return
+    
+    print(f"Loaded {len(reviews)} reviews")
+    
+    # preprocess
+    print("\nPreprocessing...")
+    preprocessor = TextPreprocessor()
+    processed_reviews = preprocessor.preprocess_reviews(reviews)
+    
+    # remove outliers
+    processed_reviews, labels = remove_outliers(processed_reviews, labels)
+    print(f"After cleaning: {len(processed_reviews)} reviews")
+    
+    # encode text
+    print("\nEncoding text...")
+    encoder = TextEncoder(max_words=10000, max_len=200)
+    encoder.fit_tokenizer(processed_reviews)
+    
+    # prepare datasets
+    X_train, X_val, X_test, y_train, y_val, y_test = encoder.prepare_data(
+        processed_reviews, labels
+    )
+    
+    # import CNN model
+    from model import create_cnn_model
+    
+    # create model
+    print("\nCreating CNN model...")
+    vocab_size = min(len(encoder.tokenizer.word_index) + 1, 10000)
+    model = create_cnn_model(vocab_size, 200)
+    
+    print("\nModel summary:")
+    model.summary()
+    
+    # callbacks
+    early_stop = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    
+    reduce_lr = ReduceLROnPlateau(
+        monitor='val_loss',
+        factor=0.5,
+        patience=3,
+        min_lr=0.00001
+    )
+    
+    # create models folder if not exists
+    if not os.path.exists('models'):
+        os.makedirs('models')
+    
+    checkpoint = ModelCheckpoint(
+        'models/best_cnn.h5',
+        monitor='val_accuracy',
+        save_best_only=True,
+        mode='max'
+    )
+    
+    # train
+    print("\nTraining CNN model...")
+    history = model.fit(
+        X_train, y_train,
+        batch_size=32,
+        epochs=30,
+        validation_data=(X_val, y_val),
+        callbacks=[early_stop, reduce_lr, checkpoint],
+        verbose=1
+    )
+    
+    # evaluate on test set
+    print("\nEvaluating on test set...")
+    test_loss, test_acc, test_auc = model.evaluate(X_test, y_test)
+    print(f"Test accuracy: {test_acc:.4f}")
+    print(f"Test loss: {test_loss:.4f}")
+    print(f"Test AUC: {test_auc:.4f}")
+    
+    # save final model
+    model.save('models/cnn_final.h5')
+    
+    # plot training history
+    plot_training_history(history, 'cnn_training_history.png')
+    
+    print("\nCNN Training complete!")
+    print("Model saved to models/best_cnn.h5")
+    
+    return model, history
+
+def train_hybrid():
+    """Train Hybrid CNN-LSTM model"""
+    print("Starting Hybrid model training...")
+    
+    # load data
+    print("\nLoading data...")
+    reviews, labels = load_labelled_reviews()
+    
+    if len(reviews) == 0:
+        print("No data found!")
+        return
+    
+    print(f"Loaded {len(reviews)} reviews")
+    
+    # preprocess
+    print("\nPreprocessing...")
+    preprocessor = TextPreprocessor()
+    processed_reviews = preprocessor.preprocess_reviews(reviews)
+    
+    # remove outliers
+    processed_reviews, labels = remove_outliers(processed_reviews, labels)
+    print(f"After cleaning: {len(processed_reviews)} reviews")
+    
+    # encode text
+    print("\nEncoding text...")
+    encoder = TextEncoder(max_words=10000, max_len=200)
+    encoder.fit_tokenizer(processed_reviews)
+    
+    # prepare datasets
+    X_train, X_val, X_test, y_train, y_val, y_test = encoder.prepare_data(
+        processed_reviews, labels
+    )
+    
+    # import hybrid model
+    from model import create_hybrid_model
+    
+    # create model
+    print("\nCreating Hybrid model...")
+    vocab_size = min(len(encoder.tokenizer.word_index) + 1, 10000)
+    model = create_hybrid_model(vocab_size, 200)
+    
+    print("\nModel summary:")
+    model.summary()
+    
+    # callbacks
+    early_stop = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    
+    reduce_lr = ReduceLROnPlateau(
+        monitor='val_loss',
+        factor=0.5,
+        patience=3,
+        min_lr=0.00001
+    )
+    
+    # create models folder if not exists
+    if not os.path.exists('models'):
+        os.makedirs('models')
+    
+    checkpoint = ModelCheckpoint(
+        'models/best_hybrid.h5',
+        monitor='val_accuracy',
+        save_best_only=True,
+        mode='max'
+    )
+    
+    # train
+    print("\nTraining Hybrid model...")
+    history = model.fit(
+        X_train, y_train,
+        batch_size=32,
+        epochs=30,
+        validation_data=(X_val, y_val),
+        callbacks=[early_stop, reduce_lr, checkpoint],
+        verbose=1
+    )
+    
+    # evaluate on test set
+    print("\nEvaluating on test set...")
+    test_loss, test_acc, test_auc = model.evaluate(X_test, y_test)
+    print(f"Test accuracy: {test_acc:.4f}")
+    print(f"Test loss: {test_loss:.4f}")
+    print(f"Test AUC: {test_auc:.4f}")
+    
+    # save final model
+    model.save('models/hybrid_final.h5')
+    
+    # plot training history
+    plot_training_history(history, 'hybrid_training_history.png')
+    
+    print("\nHybrid Training complete!")
+    print("Model saved to models/best_hybrid.h5")
+    
+    return model, history
+
 if __name__ == "__main__":
+    # can run any model training
     train_lstm()
