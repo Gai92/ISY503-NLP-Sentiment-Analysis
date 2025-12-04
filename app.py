@@ -55,10 +55,10 @@ def predict():
         prediction = model.predict(padded, verbose=0)[0][0]
         
         # Determine sentiment with neutral zone
-        if prediction > 0.65:
+        if prediction > 0.67:
             sentiment = "Positive"
             confidence = float(prediction)
-        elif prediction < 0.35:
+        elif prediction < 0.33:
             sentiment = "Negative"
             confidence = float(1 - prediction)
         else:
