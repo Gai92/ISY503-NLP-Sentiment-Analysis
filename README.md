@@ -73,12 +73,18 @@ python src/explore_data.py
 
 ### 2. Train Models
 
-Train individual models:
 ```bash
-python run_training.py        # LSTM
-python run_cnn_training.py    # CNN
-python run_hybrid_training.py # Hybrid
+python run_training.py        # Train LSTM model
+python run_cnn_training.py    # Train CNN model
+python run_hybrid_training.py # Train Hybrid model (recommended)
 ```
+
+Or use training functions directly:
+```bash
+python src/train.py           # Direct access to training functions
+```
+
+Each training automatically generates confusion matrix and training history plots.
 
 ### 3. Web Application
 ```bash
@@ -93,9 +99,14 @@ python run_evaluation.py
 ```
 
 This will create:
-- `confusion_matrix.png` - Detailed confusion matrix heatmap
+- `confusion_matrix.png` - Confusion matrix for the specified model
 - Performance metrics (accuracy, precision, recall, F1-score)
 - Custom review predictions
+
+**Note**: When training models individually, each generates its own confusion matrix:
+- `python run_training.py` → `lstm_confusion_matrix.png`
+- `python run_cnn_training.py` → `cnn_confusion_matrix.png`  
+- `python run_hybrid_training.py` → `hybrid_confusion_matrix.png`
 
 ### 5. Ethical Analysis
 ```bash
@@ -196,8 +207,10 @@ After training and evaluation, the following files are automatically created:
 - `hybrid_training_history.png` - Hybrid model training curves
 
 ### Performance Analysis
-- `confusion_matrix.png` - Detailed confusion matrix heatmap
-- Model performance metrics printed to console
+- `lstm_confusion_matrix.png` - LSTM model confusion matrix
+- `cnn_confusion_matrix.png` - CNN model confusion matrix  
+- `hybrid_confusion_matrix.png` - Hybrid model confusion matrix
+- Model performance metrics printed to console for each model
 
 ### Saved Models
 - `models/best_lstm.h5` - Best LSTM model weights
