@@ -22,7 +22,10 @@ sentiment-analysis-project/
 ├── artifacts/             # Tokenizer and other artifacts
 ├── templates/             # HTML templates for web app
 ├── app.py                 # Flask web application
-├── main.py               # Complete pipeline
+├── run_evaluation.py      # Model evaluation and visualization
+├── run_training.py        # LSTM training script
+├── run_cnn_training.py    # CNN training script
+├── run_hybrid_training.py # Hybrid model training script
 ├── ethical_analysis.py   # Bias analysis
 └── requirements.txt      # Dependencies
 ```
@@ -70,12 +73,18 @@ python src/explore_data.py
 
 ### 2. Train Models
 
-Train individual models:
 ```bash
-python run_training.py        # LSTM
-python run_cnn_training.py    # CNN
-python run_hybrid_training.py # Hybrid
+python run_training.py        # Train LSTM model
+python run_cnn_training.py    # Train CNN model
+python run_hybrid_training.py # Train Hybrid model (recommended)
 ```
+
+Or use training functions directly:
+```bash
+python src/train.py           # Direct access to training functions
+```
+
+Each training automatically generates confusion matrix and training history plots.
 
 ### 3. Web Application
 ```bash
@@ -83,7 +92,23 @@ python app.py
 ```
 Then open http://localhost:5000 in your browser.
 
-### 4. Ethical Analysis
+### 4. Model Evaluation & Visualization
+Generate confusion matrix and performance metrics:
+```bash
+python run_evaluation.py
+```
+
+This will create:
+- `confusion_matrix.png` - Confusion matrix for the specified model
+- Performance metrics (accuracy, precision, recall, F1-score)
+- Custom review predictions
+
+**Note**: When training models individually, each generates its own confusion matrix:
+- `python run_training.py` → `lstm_confusion_matrix.png`
+- `python run_cnn_training.py` → `cnn_confusion_matrix.png`  
+- `python run_hybrid_training.py` → `hybrid_confusion_matrix.png`
+
+### 5. Ethical Analysis
 ```bash
 python ethical_analysis.py
 ```
@@ -120,7 +145,8 @@ python ethical_analysis.py
 - **Data Preprocessing**: Cleaning, tokenization, lemmatization
 - **Multiple Models**: LSTM, CNN, and Hybrid architectures
 - **Web Interface**: Real-time sentiment prediction
-- **Visualization**: Training history, confusion matrices, ROC curves
+- **Automated Visualization**: Training history plots, confusion matrices
+- **Performance Evaluation**: Detailed metrics and custom review testing
 - **Ethical Analysis**: Bias detection and mitigation strategies
 
 ## API Endpoints
@@ -171,9 +197,35 @@ See `ethical_considerations.md` for detailed report.
 5. Explainable AI features
 6. Mobile application
 
+## Generated Outputs
+
+After training and evaluation, the following files are automatically created:
+
+### Training Visualizations
+- `lstm_training_history.png` - LSTM training curves
+- `cnn_training_history.png` - CNN training curves  
+- `hybrid_training_history.png` - Hybrid model training curves
+
+### Performance Analysis
+- `lstm_confusion_matrix.png` - LSTM model confusion matrix
+- `cnn_confusion_matrix.png` - CNN model confusion matrix  
+- `hybrid_confusion_matrix.png` - Hybrid model confusion matrix
+- Model performance metrics printed to console for each model
+
+### Saved Models
+- `models/best_lstm.h5` - Best LSTM model weights
+- `models/best_cnn.h5` - Best CNN model weights
+- `models/best_hybrid.h5` - Best Hybrid model weights
+- `artifacts/tokenizer.pickle` - Fitted tokenizer for deployment
+
 ## Testing
 
 Run tests:
 ```bash
 python test_pipeline.py
+```
+
+Run evaluation only (if models already trained):
+```bash
+python run_evaluation.py
 ```

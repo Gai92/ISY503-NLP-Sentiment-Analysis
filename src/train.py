@@ -94,6 +94,17 @@ def train_lstm():
     # plot training history
     plot_training_history(history, 'lstm_training_history.png')
     
+    # evaluate model and generate confusion matrix
+    from evaluation import evaluate_model
+    print("\nGenerating LSTM evaluation metrics...")
+    evaluate_model(model, X_test, y_test, encoder)
+    
+    # rename confusion matrix for LSTM
+    import shutil
+    if os.path.exists('confusion_matrix.png'):
+        shutil.move('confusion_matrix.png', 'lstm_confusion_matrix.png')
+        print("LSTM confusion matrix saved to lstm_confusion_matrix.png")
+    
     print("\nTraining complete!")
     print("Model saved to models/best_lstm.h5")
     
@@ -221,6 +232,17 @@ def train_cnn():
     # plot training history
     plot_training_history(history, 'cnn_training_history.png')
     
+    # evaluate model and generate confusion matrix
+    from evaluation import evaluate_model
+    print("\nGenerating CNN evaluation metrics...")
+    evaluate_model(model, X_test, y_test, encoder)
+    
+    # rename confusion matrix for CNN
+    import shutil
+    if os.path.exists('confusion_matrix.png'):
+        shutil.move('confusion_matrix.png', 'cnn_confusion_matrix.png')
+        print("CNN confusion matrix saved to cnn_confusion_matrix.png")
+    
     print("\nCNN Training complete!")
     print("Model saved to models/best_cnn.h5")
     
@@ -314,6 +336,17 @@ def train_hybrid():
     
     # plot training history
     plot_training_history(history, 'hybrid_training_history.png')
+    
+    # evaluate model and generate confusion matrix
+    from evaluation import evaluate_model
+    print("\nGenerating Hybrid evaluation metrics...")
+    evaluate_model(model, X_test, y_test, encoder)
+    
+    # rename confusion matrix for Hybrid
+    import shutil
+    if os.path.exists('confusion_matrix.png'):
+        shutil.move('confusion_matrix.png', 'hybrid_confusion_matrix.png')
+        print("Hybrid confusion matrix saved to hybrid_confusion_matrix.png")
     
     print("\nHybrid Training complete!")
     print("Model saved to models/best_hybrid.h5")
