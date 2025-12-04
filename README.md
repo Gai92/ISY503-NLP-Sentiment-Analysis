@@ -100,10 +100,10 @@ python ethical_analysis.py
 - Global max pooling
 - Fast training and inference
 
-### Hybrid Model
+### Hybrid Model **Recommended**
 - Combines CNN and LSTM
 - Captures both local and sequential features
-- Best overall performance
+- Best overall performance (~86% accuracy)
 
 ## Performance
 
