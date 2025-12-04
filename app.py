@@ -53,18 +53,15 @@ def predict():
         
         # Make prediction
         prediction = model.predict(padded, verbose=0)[0][0]
-        
-        # Determine sentiment with neutral zone
-        if prediction > 0.67:
+
+        # Determine sentiment
+        if prediction > 0.5:
             sentiment = "Positive"
             confidence = float(prediction)
-        elif prediction < 0.33:
+        else:
             sentiment = "Negative"
             confidence = float(1 - prediction)
-        else:
-            sentiment = "Neutral"
-            confidence = float(1 - abs(prediction - 0.5) * 4)
-        
+
         return jsonify({
             'sentiment': sentiment,
             'confidence': confidence,
@@ -77,9 +74,5 @@ def predict():
             'success': False
         })
 
-@app.route('/about')
-def about():
-    return render_template('about.html')
-
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True)
