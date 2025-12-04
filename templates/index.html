@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 20px;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border: 1px solid #ccc;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #999;
+            font-size: 14px;
+            height: 120px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 2px solid;
+            display: none;
+        }
+        
+        .result.positive {
+            background: #e8f5e8;
+            border-color: #4CAF50;
+            color: #2e7d32;
+        }
+        
+        .result.negative {
+            background: #ffeaea;
+            border-color: #f44336;
+            color: #c62828;
+        }
+        
+        .result.neutral {
+            background: #fff8e1;
+            border-color: #ff9800;
+            color: #ef6c00;
+        }
+        
+        .sentiment {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .confidence {
+            font-size: 14px;
+        }
+        
+        .error {
+            background: #ffeaea;
+            border: 1px solid #f44336;
+            color: #c62828;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            margin-top: 20px;
+            display: none;
+            font-style: italic;
+        }
+        
+        .examples {
+            margin-top: 30px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+        }
+        
+        .examples h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .example-btn {
+            background: #f0f0f0;
+            border: 1px solid #999;
+            color: #333;
+            padding: 8px 12px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .example-btn:hover {
+            background: #e0e0e0;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sentiment Analysis Project</h1>
+        
+        <label for="review-text">Enter your product review:</label>
+        <textarea 
+            id="review-text" 
+            placeholder="Type or paste your product review here..."
+        ></textarea>
+        
+        <button id="analyze-btn" onclick="analyzeSentiment()">
+            Analyze Sentiment
+        </button>
+        
+        <div class="loading" id="loading">
+            Analyzing... Please wait...
+        </div>
+        
+        <div class="result" id="result">
+            <div class="sentiment" id="sentiment"></div>
+            <div class="confidence" id="confidence"></div>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="examples">
+            <h3>Test Examples:</h3>
+            <button class="example-btn" onclick="setExample('This product exceeded my expectations! Great quality and fast shipping.')">
+                Positive Example
+            </button>
+            <button class="example-btn" onclick="setExample('Terrible product. Broke after one day. Complete waste of money.')">
+                Negative Example
+            </button>
+            <button class="example-btn" onclick="setExample('The product is average. Nothing special about it.')">
+                Neutral Example
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        function setExample(text) {
+            document.getElementById('review-text').value = text;
+        }
+        
+        async function analyzeSentiment() {
+            const text = document.getElementById('review-text').value.trim();
+            
+            if (!text) {
+                showError('Please enter some text to analyze');
+                return;
+            }
+            
+            // Hide previous results
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('analyze-btn').disabled = true;
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult(data.sentiment, data.confidence);
+                } else {
+                    showError(data.error || 'An error occurred');
+                }
+            } catch (error) {
+                showError('Failed to connect to server');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('analyze-btn').disabled = false;
+            }
+        }
+        
+        function showResult(sentiment, confidence) {
+            const resultDiv = document.getElementById('result');
+            const sentimentDiv = document.getElementById('sentiment');
+            const confidenceDiv = document.getElementById('confidence');
+            
+            sentimentDiv.textContent = sentiment;
+            confidenceDiv.textContent = 'Confidence: ' + (confidence * 100).toFixed(1) + '%';
+            
+            resultDiv.className = 'result ' + sentiment.toLowerCase();
+            resultDiv.style.display = 'block';
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = 'Error: ' + message;
+            errorDiv.style.display = 'block';
+        }
+        
+        // Allow Enter key to submit
+        document.getElementById('review-text').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                analyzeSentiment();
+            }
+        });
+    </script>
+</body>
+</html>
