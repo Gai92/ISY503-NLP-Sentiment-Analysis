@@ -77,11 +77,6 @@ python run_cnn_training.py    # CNN
 python run_hybrid_training.py # Hybrid
 ```
 
-Or run complete pipeline:
-```bash
-python main.py
-```
-
 ### 3. Web Application
 ```bash
 python app.py
