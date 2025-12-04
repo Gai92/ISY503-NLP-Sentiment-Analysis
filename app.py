@@ -15,7 +15,7 @@ app = Flask(__name__)
 
 # Load model and tokenizer
 print("Loading model...")
-model = tf.keras.models.load_model('models/best_lstm.h5')
+model = tf.keras.models.load_model('models/best_hybrid.h5')
 
 print("Loading tokenizer...")
 with open('artifacts/tokenizer.pickle', 'rb') as f:

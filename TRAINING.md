@@ -26,7 +26,7 @@ python src/train.py
 
 ## Output
 
-- Model file: `models/best_lstm.h5`
+- Model file: `models/best_hybrid.h5` (recommended for best performance)
 - Training plot: `training_history.png`
 
 ## Settings
