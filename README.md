@@ -22,7 +22,10 @@ sentiment-analysis-project/
 ├── artifacts/             # Tokenizer and other artifacts
 ├── templates/             # HTML templates for web app
 ├── app.py                 # Flask web application
-├── main.py               # Complete pipeline
+├── run_evaluation.py      # Model evaluation and visualization
+├── run_training.py        # LSTM training script
+├── run_cnn_training.py    # CNN training script
+├── run_hybrid_training.py # Hybrid model training script
 ├── ethical_analysis.py   # Bias analysis
 └── requirements.txt      # Dependencies
 ```
@@ -83,7 +86,18 @@ python app.py
 ```
 Then open http://localhost:5000 in your browser.
 
-### 4. Ethical Analysis
+### 4. Model Evaluation & Visualization
+Generate confusion matrix and performance metrics:
+```bash
+python run_evaluation.py
+```
+
+This will create:
+- `confusion_matrix.png` - Detailed confusion matrix heatmap
+- Performance metrics (accuracy, precision, recall, F1-score)
+- Custom review predictions
+
+### 5. Ethical Analysis
 ```bash
 python ethical_analysis.py
 ```
@@ -120,7 +134,8 @@ python ethical_analysis.py
 - **Data Preprocessing**: Cleaning, tokenization, lemmatization
 - **Multiple Models**: LSTM, CNN, and Hybrid architectures
 - **Web Interface**: Real-time sentiment prediction
-- **Visualization**: Training history, confusion matrices, ROC curves
+- **Automated Visualization**: Training history plots, confusion matrices
+- **Performance Evaluation**: Detailed metrics and custom review testing
 - **Ethical Analysis**: Bias detection and mitigation strategies
 
 ## API Endpoints
@@ -171,9 +186,33 @@ See `ethical_considerations.md` for detailed report.
 5. Explainable AI features
 6. Mobile application
 
+## Generated Outputs
+
+After training and evaluation, the following files are automatically created:
+
+### Training Visualizations
+- `lstm_training_history.png` - LSTM training curves
+- `cnn_training_history.png` - CNN training curves  
+- `hybrid_training_history.png` - Hybrid model training curves
+
+### Performance Analysis
+- `confusion_matrix.png` - Detailed confusion matrix heatmap
+- Model performance metrics printed to console
+
+### Saved Models
+- `models/best_lstm.h5` - Best LSTM model weights
+- `models/best_cnn.h5` - Best CNN model weights
+- `models/best_hybrid.h5` - Best Hybrid model weights
+- `artifacts/tokenizer.pickle` - Fitted tokenizer for deployment
+
 ## Testing
 
 Run tests:
 ```bash
 python test_pipeline.py
+```
+
+Run evaluation only (if models already trained):
+```bash
+python run_evaluation.py
 ```
